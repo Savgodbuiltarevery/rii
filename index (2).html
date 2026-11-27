@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revery (Beta)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Gaegu:wght@700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a dusty library at dusk where someone left a strange glowing thing on the desk; bratty notes in the margins
+   IDEA: an old reading room; each page is a chapter of a private, slightly unhinged manuscript
+   PICTURE: the faded-blue orb with a speech bubble on the home page; the void as an open dark page you write into
+   COLOUR and TYPE: faded powder blue + parchment, walnut ink, oxblood accent, a thread of old gold; Cormorant Garamond, Source Serif 4, Gaegu for the bratty voice
+   LAYOUT: blue masthead band, one reading column per chapter, chapter navigation that wraps */
+:root{color-scheme:light dark;
+--blue:light-dark(#c4d3e0,#1b2430);--blue2:light-dark(#9fb5c9,#2a3747);--paper:light-dark(#f1ede4,#11161d);
+--ink:light-dark(#2d2520,#e6e0d4);--soft:light-dark(#6b625a,#a39d93);--ox:light-dark(#7a2e38,#d98b95);
+--gold:light-dark(#a3864d,#c9ab6f);--line:light-dark(#d9d1c2,#2a3340);--card:light-dark(#f8f5ee,#171e27)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.65 "Source Serif 4",Georgia,serif;overflow-x:clip}
+a{color:var(--ox);text-underline-offset:3px}
+html{scroll-padding-top:72px}
+.band{padding:clamp(36px,5vw,80px) max(5vw,16px)}
+.col{max-width:700px;margin:0 auto}
+.wide{max-width:1100px;margin:0 auto}
+h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;line-height:1.05;text-wrap:balance;margin:0 0 14px}
+h1{font-size:clamp(40px,7vw,64px)}h2{font-size:clamp(32px,4.4vw,46px)}h3{font-size:26px;margin-top:34px}
+.kicker{font:italic 500 20px/1.3 "Cormorant Garamond",serif;color:var(--soft);margin:0 0 26px}
+.rule{border:0;border-top:1px solid var(--gold);width:72px;margin:28px 0}
+.note{font-size:14px;color:var(--soft)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+header.mast{background:var(--blue);border-bottom:1px solid var(--blue2);padding:16px max(5vw,16px);position:sticky;top:0;z-index:5}
+.mast .wide{display:flex;flex-wrap:wrap;gap:6px 26px;align-items:baseline;justify-content:space-between}
+.logo{font:600 30px/1 "Cormorant Garamond",serif;color:var(--ink);text-decoration:none}
+.logo small{font:italic 500 15px "Cormorant Garamond",serif;color:var(--soft)}
+nav ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:0 18px}
+nav a{color:var(--ink);text-decoration:none;font-size:15px;padding:10px 0;display:inline-block;border-bottom:1px solid transparent}
+nav a:hover,nav a[aria-current=page]{border-bottom-color:var(--ox);color:var(--ox)}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--ox);outline-offset:3px}
+
+section[data-page]{display:none}section[data-page].on{display:block;animation:fade .5s ease-out}
+@keyframes fade{from{opacity:0}}
+
+.hero{background:var(--blue);text-align:center;padding-bottom:clamp(48px,7vw,96px)}
+.hero h1{font-size:clamp(48px,9vw,96px);margin:0}
+.hero .by{font:italic 500 20px "Cormorant Garamond",serif;color:var(--soft);margin:2px 0 6px}
+.hero .tag{margin:0 0 4px}
+.stage{position:relative;width:min(340px,74vw);aspect-ratio:1;margin:30px auto 0}
+.orb{all:unset;cursor:pointer;position:absolute;inset:14%;border-radius:50%;
+background:radial-gradient(circle at 35% 30%,#fff 0 5%,#e4edf5 14%,#9fb5c9 45%,#4d6580 100%);
+box-shadow:0 36px 50px -22px rgba(30,25,20,.5),inset -16px -22px 40px rgba(25,35,55,.4);transition:transform .25s}
+.orb:hover{transform:scale(1.03)}
+.orb.wob{animation:wob .45s}
+@keyframes wob{25%{transform:rotate(-6deg) scale(.96)}60%{transform:rotate(5deg) scale(1.04)}}
+.orb:focus-visible{outline:2px solid var(--ox);outline-offset:10px}
+.shadow{position:absolute;left:24%;right:24%;bottom:3%;height:7%;border-radius:50%;background:rgba(40,30,25,.3);filter:blur(9px)}
+.bubble{position:absolute;left:50%;top:-4%;transform:translateX(-50%);background:var(--card);color:var(--ink);border:1px solid var(--line);
+padding:11px 18px;border-radius:18px;font:700 clamp(18px,3.2vw,23px)/1.15 Gaegu,cursive;width:max-content;max-width:min(90vw,400px);box-shadow:0 10px 22px rgba(40,30,25,.18)}
+.bubble::after{content:"";position:absolute;left:50%;bottom:-9px;margin-left:-9px;border:9px solid transparent;border-bottom:0;border-top-color:var(--card)}
+.taps{font-size:14px;color:var(--soft);margin:18px 0 0}
+#reveal[hidden]{display:none}
+.dream{font:italic 500 clamp(24px,3.4vw,30px)/1.3 "Cormorant Garamond",serif}
+
+.social{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.social a,.btn{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border:1px solid var(--ink);border-radius:999px;color:var(--ink);text-decoration:none;font:600 15px "Source Serif 4",serif;background:none;cursor:pointer}
+.social a:hover,.btn:hover{background:var(--ink);color:var(--paper)}
+
+.news{background:var(--blue2);color:var(--ink)}
+.news form{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+input,textarea{font:16px "Source Serif 4",serif;padding:13px 16px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.news input{flex:1 1 240px}
+.btn.solid{background:var(--ox);border-color:var(--ox);color:#fff}
+.btn.solid:hover{filter:brightness(1.1);background:var(--ox);color:#fff}
+.msg{min-height:1.6em;margin:10px 0 0;font-size:15px}
+
+.rooms{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:18px;margin-top:24px}
+.frame{background:var(--card);border:1px solid var(--line);padding:14px 14px 18px;border-radius:4px;box-shadow:0 14px 26px -18px rgba(40,30,25,.5)}
+.frame .mat{aspect-ratio:4/5;background:linear-gradient(160deg,var(--blue),var(--blue2));display:grid;place-items:center;color:var(--soft);font-style:italic;text-align:center;padding:12px}
+.frame h3{margin:14px 0 2px;font-size:24px}.frame p{margin:0;font-size:15px;color:var(--soft)}
+
+.owner{display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr);gap:28px;align-items:start;margin:8px 0 10px}
+@media(max-width:600px){.owner{grid-template-columns:minmax(0,1fr)}}
+.portrait{width:100%;aspect-ratio:3/4;object-fit:cover;object-position:50% 30%;border:10px solid var(--card);outline:1px solid var(--line);display:block;filter:sepia(.12) saturate(.9)}
+blockquote{margin:22px 0;padding:4px 0 4px 20px;border-left:2px solid var(--gold);font:italic 500 23px/1.35 "Cormorant Garamond",serif}
+.apology{background:var(--card);border:1px dashed var(--soft);padding:16px 20px;border-radius:8px;font-size:16px}
+
+.src{list-style:none;padding:0;margin:20px 0;display:grid;gap:10px}
+.src a{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px 18px;background:var(--card);border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--ink)}
+.src a:hover{border-color:var(--ox)}.src span{color:var(--soft);font-size:15px}
+.diagram{margin:26px 0;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:22px;text-align:center}
+.diagram .slot{aspect-ratio:4/3;background:linear-gradient(180deg,#e9b8b8,#efd3a8,#e9e3a6,#b9d6b4,#aac7de,#b8b2d9,#d2b6d8);opacity:.55;border-radius:6px;display:grid;place-items:center;color:#2d2520;font-style:italic}
+.diagram figcaption{margin-top:10px;font-size:14px;color:var(--soft)}
+.comment{font-family:Gaegu,cursive;font-weight:700;font-size:21px;color:var(--ox);transform:rotate(-1deg);margin-top:28px}
+
+.void{background:#0c1016;color:#cfd8e3;min-height:80vh}
+.void h2{color:#e6e0d4}.void .kicker{color:#8796a8}
+.void textarea{width:100%;min-height:130px;background:#121923;border-color:#273242;color:#e6e0d4;resize:vertical}
+.void .btn{border-color:#cfd8e3;color:#cfd8e3}.void .btn:hover{background:#cfd8e3;color:#0c1016}
+.sky{position:relative;height:220px;margin-top:22px;overflow:hidden;border-top:1px solid #273242}
+.word{position:absolute;bottom:0;font:italic 500 22px "Cormorant Garamond",serif;color:#c4d3e0;animation:rise 4.5s ease-in forwards;white-space:nowrap}
+@keyframes rise{to{transform:translateY(-240px) scale(.6);opacity:0;filter:blur(3px)}}
+.count{font-size:14px;color:#8796a8}
+
+footer{background:var(--blue);border-top:1px solid var(--blue2);padding:30px max(5vw,16px);font-size:14px;color:var(--soft)}
+footer .wide{display:flex;flex-wrap:wrap;gap:8px 28px;justify-content:space-between}
+</style>
+</head>
+<body>
+<header class="mast"><div class="wide">
+  <a class="logo" href="#home">Revery <small>(beta)</small></a>
+  <nav aria-label="Pages"><ul>
+    <li><a href="#home">home</a></li>
+    <li><a href="#what-is-revery">what is revery?</a></li>
+    <li><a href="#gallery">gallery</a></li>
+    <li><a href="#meet-the-creator">meet the creator</a></li>
+    <li><a href="#human-tools">human tools</a></li>
+    <li><a href="#natal">natal</a></li>
+    <li><a href="#chakras">chakras</a></li>
+    <li><a href="#void">void</a></li>
+  </ul></nav>
+</div></header>
+
+<main>
+<!-- HOME -->
+<section data-page="home">
+  <div class="band hero">
+    <h1>Revery</h1>
+    <p class="by">(beta) by Savannah Morrison</p>
+    <p class="tag">a label. contemporary art. a blog.</p>
+    <p class="tag"><em>enlightenment for the collective conscience</em></p>
+    <div class="stage">
+      <div class="shadow"></div>
+      <button class="orb" id="orb" aria-label="Poke the orb" aria-describedby="bubble"></button>
+      <div class="bubble" id="bubble" aria-live="polite">tap to find out</div>
+    </div>
+    <p class="taps" id="taps">4 pokes to go</p>
+  </div>
+  <div class="band"><div class="col">
+    <p class="locked note" id="locked">the orb is keeping secrets. poke it.</p>
+    <div id="reveal" hidden>
+      <p class="kicker">revery (n.): a pleasant dream or thought</p>
+      <p class="dream">What lies beneath the conscious mind is a question my mind has pondered since the day I became aware of my existence.</p>
+      <p>As of 2026, I'm confused, curious and creative. My goal, my revery, is clarity and expression. This site is where I try to get there in public: art, half-finished theories, tools for being a human, and a void to throw your thoughts into.</p>
+      <p>I hope to build a creative community for people who love contemporary art. If you're reading this, you might already be one of us.</p>
+      <div class="social">
+        <a href="https://www.tiktok.com/@iinvestedinrevery">TikTok</a>
+        <a href="https://www.instagram.com/iinvestedinrevery">Instagram</a>
+        <a href="https://www.pinterest.com/dollyluvsav/">Pinterest</a>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<!-- WHAT IS REVERY -->
+<section data-page="what-is-revery"><div class="band"><div class="col">
+  <h2>what is revery?</h2>
+  <p class="kicker">basically a safe space for dorks, freaks, and geeks</p>
+  <p>Revery is a label, a blog, and a slowly growing collection of contemporary art. Underneath all of it is one question: what is it like to be a mind, and what is going on underneath the part we're aware of?</p>
+  <h3>On consciousness</h3>
+  <p>Most of the time we live inside our thoughts without noticing them, the way a fish doesn't notice water. Every so often something pulls us back far enough to watch the mind instead of being it. You catch yourself mid-thought and wonder: who just noticed that?</p>
+  <p>That gap between the thinker and the watcher is where Revery lives. Philosophers have argued for centuries about whether there is a self doing the watching, or only more thoughts watching other thoughts. Psychologists study how the mind tells stories about itself, and how convincing those stories feel even when they're wrong. Astrologers and mystics built maps of the inner world long before anyone could scan a brain.</p>
+  <p>I don't think any one of these has the whole answer. Revery treats each one as a lens, a <a href="#human-tools">human tool</a>, and asks what you can see through it that you couldn't before.</p>
+  <h3>What you'll find here</h3>
+  <p>Art and photography in the <a href="#gallery">gallery</a>. Guides to <a href="#natal">natal charts</a> and <a href="#chakras">chakras</a>. Videos I actually learned from in <a href="#human-tools">sources</a>. And the <a href="#void">void</a>, for when your head is too loud.</p>
+  <hr class="rule">
+  <p class="note">revery is a social organization. some features may be copyrighted.</p>
+</div></div></section>
+
+<!-- GALLERY -->
+<section data-page="gallery"><div class="band"><div class="wide">
+  <h2>gallery</h2>
+  <p class="kicker">three rooms. wander.</p>
+  <div class="rooms">
+    <figure class="frame" style="margin:0"><div class="mat">your photography goes here</div><h3>photography</h3><p>The world as I catch it.</p></figure>
+    <figure class="frame" style="margin:0"><div class="mat">your self portraits go here</div><h3>self portraits</h3><p>Looking back at the one looking.</p></figure>
+    <figure class="frame" style="margin:0"><div class="mat">your BS goes here</div><h3>i just made sum BS</h3><p>No concept. Just vibes. Respect it.</p></figure>
+  </div>
+</div></div></section>
+
+<!-- MEET THE CREATOR -->
+<section data-page="meet-the-creator"><div class="band"><div class="col">
+  <h2>meet the creator</h2>
+  <div class="apology"><strong>An apology in advance (11/01/26).</strong> What follows may be weird, unpredictable and occasionally unhinged. That's the point.</div>
+  <h3>meet the owner</h3>
+  <div class="owner">
+    <img class="portrait" src="savannah.jpg" alt="Savannah, the creator of Revery, in glasses, holding up her necklace pendant">
+    <div>
+      <p>Hi, I'm Savannah, the mind behind Revery.</p>
+      <blockquote>I don't define myself by my brain chemistry, yet the nature of myself is self-awareness and curiosity.</blockquote>
+    </div>
+  </div>
+  <h3>My experience</h3>
+  <p>My brain hasn't always been easy to live in. I spent years feeling isolated, and somewhere in that quiet I started meditating. Meditation didn't give me answers. It gave me better questions: what am I for, and what is any of this?</p>
+  <h3>My goal</h3>
+  <p>I want to encourage awareness, growth and change, in myself first and then in anyone who wanders in here. I'm a philosopher and a mentor in the making, and if there's one thing I'm sure of, it's this:</p>
+  <blockquote>I can help you think.</blockquote>
+  <p class="note">Draft: these sections are rebuilt from your original page. Paste your full text and I'll put your exact words back.</p>
+</div></div></section>
+
+<!-- HUMAN TOOLS -->
+<section data-page="human-tools"><div class="band"><div class="col">
+  <h2>human tools</h2>
+  <p class="kicker">frameworks for understanding the thing you're living in</p>
+  <p>A body, a mind, a sky you were born under. None of these come with a manual, so here are a few unofficial ones: <a href="#natal">natal charts</a>, <a href="#chakras">chakras</a>, and the videos below.</p>
+  <figure class="diagram" style="margin-inline:0">
+    <a href="levels.jpg"><img src="levels.jpg" alt="Hoe_Math infographic comparing Spiral Dynamics, developmental levels 1 to 9 from Survive to Complete, how each level feels from the inside, and Ken Wilber's AQAL model" style="width:100%;height:auto;display:block;border-radius:6px"></a>
+    <figcaption>Levels of consciousness, infographic by Hoe_Math. Tap to open it full size.</figcaption>
+  </figure>
+  <h3>sources</h3>
+  <p class="note">no affiliation or paid promotion, only unbiased recommendations :)</p>
+  <ul class="src" id="src"></ul>
+  <p class="comment">comment 11/22: humanity is fucking stupid please develop a sense of awareness.</p>
+</div></div></section>
+
+<!-- NATAL -->
+<section data-page="natal"><div class="band"><div class="col">
+  <h2>natal</h2>
+  <p class="kicker">send me your birth time and I'll read your chart. no judgment.</p>
+  <p>Astrology doesn't tell you what will happen. It's correlative, not definitive. Think of it like a doctor telling someone with prediabetes to cut back on sugar: it isn't a prophecy, it's a heads-up about where you're likely to struggle and where you have room to grow. A chart shows tendencies. What you do with them is up to you.</p>
+  <h3>What is a natal chart?</h3>
+  <p>A natal chart is a map of the sky at the exact moment and place you were born. It has four main parts:</p>
+  <p><strong>Planets</strong> are the drives inside you: the Sun is your core self, the Moon your emotional needs, Venus how you love, Mars how you act.<br>
+  <strong>Signs</strong> are the style each planet works in: a Mars in Capricorn pushes patiently, a Mars in Aries charges.<br>
+  <strong>Houses</strong> are the twelve areas of life where it all plays out, from self and money to relationships, career and the unconscious.<br>
+  <strong>Aspects</strong> are the angles between planets, showing which parts of you cooperate and which argue.</p>
+  <p>Read together, they're less a fortune and more a portrait: a symbolic language for a personality that's still being written.</p>
+  <h3>How I read charts</h3>
+  <p>I use the sidereal zodiac (Lahiri) with whole-sign houses, which lines the signs up with the constellations as they actually sit in the sky today. Most Western apps use the tropical zodiac, so your signs may shift back by about one. Both are valid traditions; just know which one you're reading.</p>
+  <h3>Get your chart</h3>
+  <ul class="src">
+    <li><a href="https://astro.cafeastrology.com/natal.php">Astro-Café <span>free natal charts</span></a></li>
+    <li><a href="https://www.costarastrology.com/natal-chart">Co-Star <span>popular, app-based</span></a></li>
+    <li><a href="https://www.astro.com/index_e.htm">Astro.com <span>detailed; good paid readings</span></a></li>
+  </ul>
+</div></div></section>
+
+<!-- CHAKRAS -->
+<section data-page="chakras"><div class="band"><div class="col">
+  <h2>chakras</h2>
+  <p class="kicker">a guide for dummies</p>
+  <p>Chakras come from Indian spiritual traditions: seven energy centres running from the base of the spine to the crown of the head, each tied to a part of life. Root is safety, sacral is pleasure and creativity, solar plexus is will, heart is love, throat is expression, third eye is intuition, crown is connection to something bigger. They aren't something a scan can find. They're a map, an old and surprisingly useful one, for noticing where you feel things.</p>
+  <h3>Chakral imbalances: the root of chaos</h3>
+  <p><strong>What are unbalanced chakras?</strong> In the tradition, an imbalance is a disconnect between mind, body and soul: one area runs too hot, another shuts down. You might live entirely in your head and forget you have a body, or feel everything and be unable to say any of it.</p>
+  <p><strong>How does this affect daily life?</strong> It shows up as confusion, restlessness, feeling stuck, or a body that's always braced. This is where the old map and modern science overlap: emotions you keep swallowing, like stress or anger, keep your nervous system switched on, and staying in that state for a long time really does wear on your body and mind.</p>
+  <p><strong>How is trauma stored in the body?</strong> Ask a hippie pilates mom. (Kidding. Mostly. Start with the HealthyGamerGG video in <a href="#human-tools">sources</a>.)</p>
+  <p class="note">Chakras are a spiritual framework, not medicine. If something feels physically or mentally wrong, see a doctor or therapist too.</p>
+</div></div></section>
+
+<!-- VOID -->
+<section data-page="void" class="void"><div class="band"><div class="col">
+  <h2>void</h2>
+  <p class="kicker">think think think. then let it go.</p>
+  <p>Type a thought that's taking up too much room. Press release. It leaves, and nothing is saved anywhere.</p>
+  <label for="thought" class="count">your thought</label>
+  <textarea id="thought" placeholder="what's on your mind…"></textarea>
+  <p style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><button class="btn" id="release">Release</button><span class="count" id="released">0 thoughts released</span></p>
+  <div class="sky" id="sky" aria-hidden="true"></div>
+  <p class="count">alchemy, manifestation, abstract thoughts, pseudoscience</p>
+</div></div></section>
+</main>
+
+<div class="band news" id="newsletter"><div class="col">
+  <h2>the revery letter</h2>
+  <p>New art, new entries, and whatever the void coughs up. Straight to your inbox, occasionally.</p>
+  <form id="news"><label for="em" class="note" style="flex-basis:100%">Email</label>
+    <input id="em" type="email" required placeholder="you@example.com" autocomplete="email">
+    <button class="btn solid" type="submit">Subscribe</button>
+  </form>
+  <p class="msg" id="msg" aria-live="polite"></p>
+</div></div>
+
+<footer><div class="wide"><span>Revery (beta) · iinvestedinrevery.com</span><span>revery is a social organization. some features may be copyrighted.</span></div></footer>
+
+<script>
+{
+  const pages=[...document.querySelectorAll('section[data-page]')],links=[...document.querySelectorAll('nav a')];
+  const show=()=>{const id=(location.hash||'#home').slice(1);const p=pages.find(s=>s.dataset.page===id)||pages[0];
+    pages.forEach(s=>s.classList.toggle('on',s===p));
+    links.forEach(a=>a.toggleAttribute('aria-current',a.getAttribute('href')==='#'+p.dataset.page));
+    links.forEach(a=>{if(a.getAttribute('href')==='#'+p.dataset.page)a.setAttribute('aria-current','page')});
+    if(location.hash)window.scrollTo(0,0)};
+  window.addEventListener('hashchange',show);
+  show();
+
+  const lines=["tap to find out","I DONT FUCKING KNOW!","why u bully meh ;-; stawp asking questions stupitt!! hmph!!","okay fine"];
+  let n=0;const orb=document.getElementById('orb'),bub=document.getElementById('bubble'),taps=document.getElementById('taps');
+  orb.addEventListener('click',()=>{
+    orb.classList.remove('wob');void orb.offsetWidth;orb.classList.add('wob');
+    if(n<lines.length-1){n++;bub.textContent=lines[n];const l=lines.length-n;taps.textContent=l+(l===1?' poke to go':' pokes to go')}
+    else{taps.textContent='fine. scroll down.';document.getElementById('locked').hidden=true;const r=document.getElementById('reveal');r.hidden=false;r.scrollIntoView({behavior:'smooth'})}
+  });
+
+  const vids=[["CIRCLES","hoe_math","jfAwbSAjq1E"],["Video 2","YouTube","N_0Q3hVuFtc"],["LEVELS OF THINKING (Basic Version)","hoe_math","kse87ocS0Uo"],["How Much Of Your Mental Health Is Physical?","HealthyGamerGG","ph2r4_5Vy74"],["How To ACTUALLY Break An Addiction","HealthyGamerGG","H877DXOAlXI"]];
+  document.getElementById('src').innerHTML=vids.map(([t,c,id])=>`<li><a href="https://www.youtube.com/watch?v=${id}">${t} <span>${c} · YouTube</span></a></li>`).join('');
+
+  let count=0;const sky=document.getElementById('sky'),ta=document.getElementById('thought');
+  document.getElementById('release').addEventListener('click',()=>{
+    const words=ta.value.trim().split(/\s+/).filter(Boolean).slice(0,40);if(!words.length){ta.focus();return}
+    words.forEach((w,i)=>{const s=document.createElement('span');s.className='word';s.textContent=w;
+      s.style.left=(5+Math.random()*80)+'%';s.style.animationDelay=(i*0.08)+'s';sky.appendChild(s);
+      s.addEventListener('animationend',()=>s.remove())});
+    ta.value='';count++;document.getElementById('released').textContent=count+(count===1?' thought released':' thoughts released');
+  });
+
+  document.getElementById('news').addEventListener('submit',e=>{e.preventDefault();
+    document.getElementById('msg').textContent="Thanks! Sign-ups aren't connected yet, so this email wasn't saved. That part goes live with the real site."});
+}
+</script>
+</body>
+</html>
